@@ -10,4 +10,7 @@ export const getEmployees = () => API.get('employees/');
 export const createEmployee = (data) => API.post('employees/', data);
 export const deleteEmployee = (id) => API.delete(`employees/${id}/`);
 
+export const getDepartments = () => API.get('departments/');
+export const createDepartment = (data) => API.post('departments/', data);
+
 export default API;
