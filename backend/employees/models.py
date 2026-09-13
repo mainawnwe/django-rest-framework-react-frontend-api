@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from django.utils import timezone
 
+
 class Department(models.Model):
     name = models.CharField(max_length=100, unique=True)
     code = models.CharField(max_length=10, unique=True)
@@ -9,11 +10,13 @@ class Department(models.Model):
     def __str__(self):
         return f"{self.name} ({self.code})"
 
+
 class Region(models.TextChoices):
     HONG_KONG = 'HK', 'Hong Kong SAR'
     CHINA = 'CN', 'Mainland China'
     MACAU = 'MO', 'Macau SAR'
     TAIWAN = 'TW', 'Taiwan'
+
 
 class Employee(models.Model):
     class EmploymentType(models.TextChoices):
@@ -36,13 +39,11 @@ class Employee(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name} [{self.region}]"
 
+
 class ShiftLog(models.Model):
-    """Tracks clock-ins, clock-outs, and geofencing for frontline workers."""
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='shifts')
-    clock_in = models.DateTimeField()
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='attendance_logs')
+    clock_in = models.DateTimeField(default=timezone.now)
     clock_out = models.DateTimeField(null=True, blank=True)
-    latitude_in = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    longitude_in = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     hours_worked = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
 
     def save(self, *args, **kwargs):
@@ -50,6 +51,10 @@ class ShiftLog(models.Model):
             delta = self.clock_out - self.clock_in
             self.hours_worked = round(delta.total_seconds() / 3600.0, 2)
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.employee.first_name} - In: {self.clock_in.strftime('%Y-%m-%d %H:%M')} | Out: {self.clock_out.strftime('%Y-%m-%d %H:%M') if self.clock_out else 'Active'}"
+
 
 class PayrollRun(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -64,6 +69,7 @@ class PayrollRun(models.Model):
     flag_reason = models.TextField(blank=True, null=True)
     executed_at = models.DateTimeField(auto_now_add=True)
 
+
 class WorkflowRequest(models.Model):
     class RequestType(models.TextChoices):
         LEAVE = 'LEAVE', 'Leave Request'
@@ -77,8 +83,29 @@ class WorkflowRequest(models.Model):
 
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     request_type = models.CharField(max_length=10, choices=RequestType.choices)
-    payload = models.JSONField(
-        help_text="Custom parameters like dates, amounts, shift details"
-    )
+    payload = models.JSONField(help_text='Custom parameters like dates, amounts, shift details')
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class LeaveRequest(models.Model):
+    class LeaveType(models.TextChoices):
+        CASUAL = 'casual', 'Casual Leave'
+        MEDICAL = 'medical', 'Medical Leave'
+        ANNUAL = 'annual', 'Annual Leave'
+
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        APPROVED = 'approved', 'Approved'
+        REJECTED = 'rejected', 'Rejected'
+
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='leaves')
+    leave_type = models.CharField(max_length=20, choices=LeaveType.choices)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    reason = models.TextField()
+    status = models.CharField(max_length=15, choices=Status.choices, default=Status.PENDING)
+    applied_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.employee.first_name} - {self.leave_type} ({self.status})"
