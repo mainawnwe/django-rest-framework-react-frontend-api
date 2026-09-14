@@ -18,6 +18,7 @@ function EmployeeList({ employees, onDeleteEmployee, isAdmin }) {
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
+      console.error(error);
       alert("Payslip ဒေါင်းလုဒ်ဆွဲရာတွင် အမှားအယွင်းရှိနေပါသည်။ (Backend Server အလုပ်လုပ်နေမနေ စစ်ဆေးပေးပါ)");
     }
   };

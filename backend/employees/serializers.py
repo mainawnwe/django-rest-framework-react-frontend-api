@@ -1,7 +1,13 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import Employee, Department, LeaveRequest, ShiftLog
+from .models import ( Employee,
+                    Department,
+                    LeaveRequest,
+                    ShiftLog ,
+                    LeaveBalance ,
+                    WorkflowRequest,
+                    Holiday, )
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -42,16 +48,19 @@ class EmployeeSerializer(serializers.ModelSerializer):
             return obj.document.url
         return None
 
-class DepartmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Department
-        fields = '__all__'
-
 class LeaveRequestSerializer(serializers.ModelSerializer):
+    employee_name = serializers.SerializerMethodField()
+
     class Meta:
         model = LeaveRequest
-        fields = '__all__'
+        fields = [
+            'id', 'employee', 'employee_name', 'leave_type',
+            'start_date', 'end_date', 'reason', 'status', 'applied_on',
+        ]
 
+    def get_employee_name(self, obj):
+        return f"{obj.employee.first_name} {obj.employee.last_name}"
+    
 class ShiftLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShiftLog
@@ -140,3 +149,34 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 #     def get_employee_name(self, obj):
 #         return f"{obj.employee.first_name} {obj.employee.last_name}"
+
+class LeaveBalanceSerializer(serializers.ModelSerializer):
+    employee_name = serializers.SerializerMethodField()
+    available_days = serializers.DecimalField(
+        max_digits=5, decimal_places=1, read_only=True
+    )
+
+    class Meta:
+        model = LeaveBalance
+        fields = [
+            'id', 'employee', 'employee_name',
+            'leave_type', 'year',
+            'entitled_days', 'used_days', 'adjustment_days',
+            'adjustment_reason', 'available_days',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = ['used_days', 'created_at', 'updated_at']
+
+    def get_employee_name(self, obj):
+        return f"{obj.employee.first_name} {obj.employee.last_name}"
+
+class HolidaySerializer(serializers.ModelSerializer):
+    region_display = serializers.CharField(source='get_region_display', read_only=True)
+
+    class Meta:
+        model = Holiday
+        fields = [
+            'id', 'name', 'date', 'region', 'region_display',
+            'year', 'is_paid', 'notes',
+        ]
+        read_only_fields = ['year']

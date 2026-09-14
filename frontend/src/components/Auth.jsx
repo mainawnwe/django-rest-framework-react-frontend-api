@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { loginUser } from '../services/api';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../context/authContext';
 
 export default function Auth({ onLoginSuccess }) {
   const { login } = useContext(AuthContext);
@@ -27,19 +27,17 @@ export default function Auth({ onLoginSuccess }) {
 
     try {
       if (isSignup) {
-        // Register API Call
         await axios.post('http://127.0.0.1:8000/api/register/', formData);
         setSuccessMsg('အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါသည်။ ကျေးဇူးပြု၍ Login ဝင်ပါ။');
-        setIsSignup(false); // Login form သို့ ပြန်ပြောင်းပေးမည်
+        setIsSignup(false);
         setFormData({ username: '', password: '', email: '', first_name: '', last_name: '' });
       } else {
-        // Login API Call - response ထဲတွင် role နှင့် employee_id ပါဝင်သည်
         const response = await loginUser({ username: formData.username, password: formData.password });
-        // AuthContext ၏ login function ကို ခေါ်ပြီး role/employee_id state ကို update လုပ်မည်
         login(response.data);
         onLoginSuccess();
       }
     } catch (err) {
+      console.error(err);
       setError(isSignup ? 'အကောင့်ဖွင့်ရန် မအောင်မြင်ပါ။ (Username တူနေနိုင်သည်)' : 'username သို့မဟုတ် password မှားယွင်းနေပါသည်။');
     }
   };
@@ -82,8 +80,8 @@ export default function Auth({ onLoginSuccess }) {
 
         <p style={{ textAlign: 'center', fontSize: '13px', color: '#7f8c8d', margin: 0 }}>
           {isSignup ? 'အကောင့်ရှိပြီးသားလား? ' : 'အကောင့်မရှိသေးဘူးလား? '}
-          <span 
-            onClick={() => { setIsSignup(!isSignup); setError(''); setSuccessMsg(''); }} 
+          <span
+            onClick={() => { setIsSignup(!isSignup); setError(''); setSuccessMsg(''); }}
             style={{ color: '#2980b9', cursor: 'pointer', fontWeight: '600', textDecoration: 'underline' }}>
             {isSignup ? 'Login ဝင်ရန်' : 'အကောင့်အသစ်ဖွင့်ရန်'}
           </span>

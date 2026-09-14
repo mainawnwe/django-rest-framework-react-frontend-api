@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../context/authContext';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import EmployeeFormModal from '../pages/Employees/EmployeeFormModal';
 import EmployeeList from '../pages/Employees/EmployeeList';

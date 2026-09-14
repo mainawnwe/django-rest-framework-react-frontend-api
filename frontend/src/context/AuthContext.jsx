@@ -1,6 +1,5 @@
-import React, { createContext, useState, useEffect } from 'react';
-
-export const AuthContext = createContext();
+import React, { useState } from 'react';
+import { AuthContext } from './authContext';
 
 export const AuthProvider = ({ children }) => {
   const [isStaff, setIsStaff] = useState(localStorage.getItem('is_staff') === 'true');

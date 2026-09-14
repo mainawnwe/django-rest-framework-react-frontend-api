@@ -27,6 +27,7 @@ export default function Register({ onSwitchToLogin }) {
       setFormData({ username: '', password: '', email: '', first_name: '', last_name: '' });
       if (onSwitchToLogin) onSwitchToLogin();
     } catch (err) {
+      console.error(err);
       setError('အကောင့်ဖွင့်ရန် မအောင်မြင်ပါ။ (Username တူနေနိုင်သည်)');
     }
   };
@@ -65,9 +66,7 @@ export default function Register({ onSwitchToLogin }) {
 
         <p style={{ textAlign: 'center', fontSize: '13px', color: '#7f8c8d', margin: 0 }}>
           အကောင့်ရှိပြီးသားလား?{' '}
-          <span 
-            onClick={onSwitchToLogin} 
-            style={{ color: '#2980b9', cursor: 'pointer', fontWeight: '600', textDecoration: 'underline' }}>
+          <span onClick={onSwitchToLogin} style={{ color: '#2980b9', cursor: 'pointer', fontWeight: '600', textDecoration: 'underline' }}>
             Login ဝင်ရန်
           </span>
         </p>

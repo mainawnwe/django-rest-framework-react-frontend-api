@@ -8,14 +8,19 @@ from .views import (
     RealTimeAnalyticsView,
     RegisterView,
     ShiftLogViewSet,
+    LeaveBalanceViewSet,
+    HolidayViewSet,
+
+    
 )
 
 router = DefaultRouter()
-router.register(r'employees', EmployeeViewSet)
-router.register(r'departments', DepartmentViewSet)
-router.register(r'leaves', LeaveRequestViewSet)
-router.register(r'attendance', ShiftLogViewSet)
-
+router.register(r'employees', EmployeeViewSet , basename='employee')
+router.register(r'departments', DepartmentViewSet , basename='department')
+router.register(r'leaves', LeaveRequestViewSet , basename='leave')
+router.register(r'attendance', ShiftLogViewSet , basename='attendance')
+router.register(r'leave-balances', LeaveBalanceViewSet , basename='leave-balance')
+router.register(r'holidays', HolidayViewSet , basename='holiday')
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('analytics/stream/', RealTimeAnalyticsView.stream_dashboard_metrics, name='analytics_stream'),

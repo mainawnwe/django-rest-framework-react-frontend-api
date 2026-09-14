@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { AuthContext } from '../../context/AuthContext';
+import { AuthContext } from '../../context/authContext';
 
 export default function Layout({ activeTab, onTabChange, onLogout, children }) {
   const { role } = useContext(AuthContext);

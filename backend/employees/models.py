@@ -176,3 +176,69 @@ class LeaveRequest(models.Model):
 
     def __str__(self):
         return f"{self.employee.first_name} - {self.leave_type} ({self.status})"
+
+class LeaveBalance(models.Model):
+    """
+    တစ်နှစ်အတွင်း ဝန်ထမ်းတစ်ယောက်ရဲ့ ခွင့်လက်ကျန်။
+    entitled_days = policy အရ ရသင့်တဲ့ ရက်
+    used_days = approve ဖြစ်ပြီးသား ခွင့်ရက်
+    adjustment_days = admin manual ပြင်ဆင်ချက် (positive သို့မဟုတ် negative)
+    available = entitled - used + adjustment
+    """
+    employee = models.ForeignKey(
+        Employee, on_delete=models.CASCADE, related_name='leave_balances'
+    )
+    leave_type = models.CharField(
+        max_length=20, choices=LeaveRequest.LeaveType.choices
+    )
+    year = models.PositiveIntegerField(db_index=True)
+
+    entitled_days = models.DecimalField(max_digits=5, decimal_places=1, default=0)
+    used_days = models.DecimalField(max_digits=5, decimal_places=1, default=0)
+    adjustment_days = models.DecimalField(max_digits=5, decimal_places=1, default=0)
+    adjustment_reason = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('employee', 'leave_type', 'year')
+        ordering = ['employee', '-year', 'leave_type']
+
+    @property
+    def available_days(self):
+        return self.entitled_days - self.used_days + self.adjustment_days
+
+    def __str__(self):
+        return (
+            f"{self.employee.first_name} - {self.leave_type} "
+            f"{self.year}: {self.available_days} available"
+        )
+
+class Holiday(models.Model):
+    """
+    Public holiday တစ်ခု။ နေ့စွဲ + region ပေါ်မူတည်ပြီး unique။
+    """
+    name = models.CharField(max_length=100)
+    date = models.DateField(db_index=True)
+    region = models.CharField(
+        max_length=2,
+        choices=Region.choices,
+        db_index=True,
+    )
+    year = models.PositiveIntegerField(db_index=True)
+    is_paid = models.BooleanField(default=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ('date', 'region')
+        ordering = ['date']
+        indexes = [models.Index(fields=['region', 'year'])]
+
+    def __str__(self):
+        return f"{self.date} — {self.name} ({self.region})"
+
+    def save(self, *args, **kwargs):
+        if self.date:
+            self.year = self.date.year
+        super().save(*args, **kwargs)
