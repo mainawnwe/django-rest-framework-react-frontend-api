@@ -16,10 +16,31 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class EmployeeSerializer(serializers.ModelSerializer):
     department_name = serializers.ReadOnlyField(source='department.name')
+    # ⭐ File upload fields - full URL paths for frontend display ⭐
+    profile_picture_url = serializers.SerializerMethodField()
+    document_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee
         fields = '__all__'
+
+    def get_profile_picture_url(self, obj):
+        """Return absolute URL for the profile picture, or None if not uploaded"""
+        if obj.profile_picture:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.profile_picture.url)
+            return obj.profile_picture.url
+        return None
+
+    def get_document_url(self, obj):
+        """Return absolute URL for the uploaded document, or None if not uploaded"""
+        if obj.document:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.document.url)
+            return obj.document.url
+        return None
 
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:

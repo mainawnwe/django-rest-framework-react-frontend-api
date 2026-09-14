@@ -54,6 +54,39 @@ export default function EmployeeFormModal({
             <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '5px', fontWeight: '500' }}>Hire Date:</label>
             <input type="date" name="hire_date" value={formData.hire_date} onChange={handleChange} required style={inputStyle} />
           </div>
+
+          {/* ⭐ Profile Picture & Document Upload Fields ⭐ */}
+          <div style={{ gridColumn: 'span 2', border: '1px dashed #dcdde1', borderRadius: '8px', padding: '14px', background: '#f0f4f8' }}>
+            <label style={{ fontSize: '15px', fontWeight: '700', color: '#2c3e50', display: 'block', marginBottom: '12px' }}>📎 အိတ်ဖိုင်မျာ တင်ရန် (Upload Files)</label>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '5px', fontWeight: '500' }}>
+                  😀 Profile Picture (Image)
+                </label>
+                <input
+                  type="file"
+                  name="profile_picture"
+                  accept="image/*"
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #dcdde1', fontSize: '13px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '5px', fontWeight: '500' }}>
+                  📄 Document / Resume (PDF, DOC, DOCX)
+                </label>
+                <input
+                  type="file"
+                  name="document"
+                  accept=".pdf,.doc,.docx,.txt"
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #dcdde1', fontSize: '13px' }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
         <button type="submit" style={{ ...primaryBtnStyle, marginTop: '20px' }}>Register Employee</button>
       </form>

@@ -35,8 +35,11 @@ class RealTimeAnalyticsView:
         """
         def event_stream():
             while True:
-                total_headcount = Employee.objects.filter(is_active=True).count()
-                total_labor_cost = Employee.objects.filter(is_active=True).aggregate(total=Sum('salary'))['total'] or 0.0
+                total_headcount = Employee.objects.filter(status=Employee.Status.ACTIVE).count()
+                total_labor_cost = (
+                    Employee.objects
+                    .filter(status=Employee.Status.ACTIVE)
+                    .aggregate(total=Sum('salary'))['total'] or 0.0 )
                 pending_workflows = WorkflowRequest.objects.filter(status='PENDING').count()
                 
                 payload = {
@@ -72,14 +75,14 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Non-admin users can only see their own employee record"""
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().exclude(status=Employee.Status.TERMINATED)
         if not self.request.user.is_staff:
-            # Find employee by email matching the logged-in user
             employee = Employee.objects.filter(email=self.request.user.email).first()
             if employee:
                 return queryset.filter(id=employee.id)
             return queryset.none()
         return queryset
+    
 
     # ⭐ Payslip PDF Download ခေါ်ဆိုရန် Custom Action ⭐
     @action(detail=True, methods=['get'])
@@ -138,7 +141,15 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         p.showPage()
         p.save()
         return response
-
+    
+@action(detail=True, methods=['post'])
+def terminate(self, request, pk=None):
+    employee = self.get_object()
+    employee.status = Employee.Status.TERMINATED
+    employee.terminated_at = timezone.now().date()
+    employee.termination_reason = request.data.get('reason', '')
+    employee.save()
+    return Response(self.get_serializer(employee).data)
 
 class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()

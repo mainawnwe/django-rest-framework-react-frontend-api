@@ -1,4 +1,36 @@
 from pathlib import Path
+import os
+from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def env(key, default=None, cast=str):
+    val = os.environ.get(key, default)
+    if val is None:
+        raise ImproperlyConfigured(f"Missing required env var: {key}")
+    if cast is bool:
+        return str(val).strip().lower() in ("1", "true", "yes", "on")
+    if cast is list:
+        return [item.strip() for item in str(val).split(",") if item.strip()]
+    return cast(val)
+
+
+# Local dev convenience: load backend/.env if python-dotenv is installed.
+try:
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / ".env")
+except ImportError:
+    pass
+
+SECRET_KEY = env("DJANGO_SECRET_KEY", "dev-insecure-change-me")
+DEBUG = env("DJANGO_DEBUG", True, bool)
+ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost", list)
+
+CORS_ALLOWED_ORIGINS = env(
+    "CORS_ALLOWED_ORIGINS", "http://localhost:5173", list
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -17,10 +49,15 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'employees',
+    'audit',
 ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "audit.middleware.AuditContextMiddleware",
+    
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -69,6 +106,10 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+
+# ⭐ Media Files (Uploaded by Users) ⭐
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [

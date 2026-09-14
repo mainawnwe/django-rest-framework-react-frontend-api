@@ -83,7 +83,15 @@ export default function App() {
     setIsAuthenticated(false);
   };
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value, type, files } = e.target;
+    // ⭐ File input fields - store the File object instead of the value ⭐
+    if (type === 'file') {
+      setFormData({ ...formData, [name]: files[0] || null });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
   const handleNewDeptChange = (e) => setNewDeptData({ ...newDeptData, [e.target.name]: e.target.value });
 
   const handleSaveDepartment = async () => {
@@ -108,7 +116,11 @@ export default function App() {
       setFormData({
         first_name: '', last_name: '', email: '', phone_number: '', department: '',
         employment_type: 'full_time', salary: '', hire_date: new Date().toISOString().split('T')[0],
+        profile_picture: null, document: null,
       });
+      // Reset file inputs visually
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      fileInputs.forEach((input) => (input.value = ''));
       fetchData();
       alert("ဝန်ထမ်းအသစ် မှတ်ပုံတင်ခြင်း အောင်မြင်ပါသည်။");
     } catch (error) {

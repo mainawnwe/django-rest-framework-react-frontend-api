@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api/',
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api/",
 });
 
 let refreshRequest = null;
@@ -82,7 +82,47 @@ export const getEmployees = (search = '', page = 1) =>
   API.get(`employees/?search=${search}&page=${page}`);
 
 
-export const createEmployee = (data) => API.post('employees/', data);
+// ⭐ Employee create/update - FormData သုံး၍ File နှင့် Text fields များကို အတူ တင်ပို့ခြင်း ⭐
+export const createEmployee = (data) => {
+  const formData = new FormData();
+  // Append all text fields
+  Object.keys(data).forEach((key) => {
+    if (key === 'profile_picture' || key === 'document') return; // files handled below
+    if (data[key] !== undefined && data[key] !== null) {
+      formData.append(key, data[key]);
+    }
+  });
+  // Append file fields if present
+  if (data.profile_picture instanceof File) {
+    formData.append('profile_picture', data.profile_picture);
+  }
+  if (data.document instanceof File) {
+    formData.append('document', data.document);
+  }
+  return API.post('employees/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+export const updateEmployee = (id, data) => {
+  const formData = new FormData();
+  Object.keys(data).forEach((key) => {
+    if (key === 'profile_picture' || key === 'document') return;
+    if (data[key] !== undefined && data[key] !== null) {
+      formData.append(key, data[key]);
+    }
+  });
+  if (data.profile_picture instanceof File) {
+    formData.append('profile_picture', data.profile_picture);
+  }
+  if (data.document instanceof File) {
+    formData.append('document', data.document);
+  }
+  return API.patch(`employees/${id}/`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
 export const deleteEmployee = (id) => API.delete(`employees/${id}/`);
 export const getDepartments = () => API.get('departments/');
 export const createDepartment = (data) => API.post('departments/', data);
